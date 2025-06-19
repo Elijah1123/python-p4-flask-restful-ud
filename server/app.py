@@ -35,16 +35,22 @@ api.add_resource(Home, '/')
 
 class Newsletters(Resource):
 
-    def get(self):
-        
-        response_dict_list = [n.to_dict() for n in Newsletter.query.all()]
+    def get(self, id):
+
+        record = Newsletter.query.filter(Newsletter.id == id).first() 
+        for attr in request.form:
+            setattr(record, attr, request.form[attr])
+
+            db.session.add(record)
+            db.session.commit()
+        response_dict = record.to_dict()
 
         response = make_response(
-            response_dict_list,
-            200,
+            response_dict,
+            200
         )
-
         return response
+       
 
     def post(self):
         
@@ -71,7 +77,12 @@ class NewsletterByID(Resource):
 
     def get(self, id):
 
-        response_dict = Newsletter.query.filter_by(id=id).first().to_dict()
+        response_dict = Newsletter.query.filter_by(id=id).first()
+
+        db.session.delete(response_dict)
+        db.session.commit()
+    
+        response_dict = {"message": "record successdully deleted"}
 
         response = make_response(
             response_dict,
